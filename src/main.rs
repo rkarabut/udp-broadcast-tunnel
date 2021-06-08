@@ -1,14 +1,15 @@
-use pcap::{Device, Capture};
-use std::{env, process, net, path::Path};
 use log::debug;
+use pcap::{Capture, Device};
+use std::{env, net, path::Path, process};
 
 fn main() {
     let args: Vec<String> = env::args().collect();
 
     if args.len() < 4 {
-        println!("Usage:    {} <device> <port> <address1,address2...>",
-            Path::new(&args[0])
-                .file_name().unwrap().to_str().unwrap());
+        println!(
+            "Usage:    {} <device> <port> <address1,address2...>",
+            Path::new(&args[0]).file_name().unwrap().to_str().unwrap()
+        );
         println!("  device: a Windows device name, e.g:");
         println!("      \\Device\\NPF_{{C4BF1F2A-4192-4889-A735-F32D70B97000}}");
         println!("  (or a number from the provided list)");
@@ -16,7 +17,8 @@ fn main() {
         println!("  addresses: the IPv4 addresses to retransmit the broadcast to");
         println!();
         println!("Available devices:");
-        Device::list().unwrap()
+        Device::list()
+            .unwrap()
             .into_iter()
             .enumerate()
             .for_each(|(i, d)| println!("{}: {} {}", i, d.name, d.desc.unwrap_or("".into())));
@@ -25,7 +27,8 @@ fn main() {
 
     let devname = args[1].clone();
     let port = args[2].parse::<usize>().expect("Invalid port");
-    let addresses: Vec<String> = args[3].split(",")
+    let addresses: Vec<String> = args[3]
+        .split(",")
         .map(|x| format!("{}:{}", x, port))
         .collect();
 
@@ -35,18 +38,22 @@ fn main() {
     // otherwise accept it as a string
     let device = match devname.parse::<usize>().ok() {
         Some(n) => devices.get(n).cloned(),
-        None => devices.into_iter().find(|d| d.name == devname)
-    }.expect("Device not found");
+        None => devices.into_iter().find(|d| d.name == devname),
+    }
+    .expect("Device not found");
 
     // bind the UDP socket to a free port
     let sock = net::UdpSocket::bind("0.0.0.0:0").unwrap();
 
-    let mut cap = Capture::from_device(device).unwrap()
+    let mut cap = Capture::from_device(device)
+        .unwrap()
         .immediate_mode(true)
-        .open().unwrap();
+        .open()
+        .unwrap();
 
     // catch broadcast packets
-    cap.filter(&format!("host 255.255.255.255 and udp port {}", port)).unwrap();
+    cap.filter(&format!("host 255.255.255.255 and udp port {}", port))
+        .unwrap();
 
     loop {
         let packet = cap.next();
@@ -56,6 +63,6 @@ fn main() {
         for address in addresses.iter() {
             debug!("Resending data to {}: {:?}", address, data);
             let _ = sock.send_to(&data, address).unwrap();
-        };
+        }
     }
 }

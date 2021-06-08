@@ -2,6 +2,9 @@
 name = "udp-broadcast-tunnel"
 version = "0.1.0"
 edition = "2018"
+authors = [ "Ratmir Karabut <rkarabut@gmail.com>" ]
+license = "MIT"
 
 [dependencies]
 pcap = "0.8.1"
+log = "0.4.14"

@@ -7,11 +7,11 @@ fn main() {
 
     if args.len() < 4 {
         println!(
-            "Usage:    {} <device> <port> <address1,address2...>",
+            "Usage: {} <device> <port> <address1,address2...>",
             Path::new(&args[0]).file_name().unwrap().to_str().unwrap()
         );
         println!("  device: a Windows device name, e.g:");
-        println!("      \\Device\\NPF_{{C4BF1F2A-4192-4889-A735-F32D70B97000}}");
+        println!("    \\Device\\NPF_{{C4BF1F2A-4192-4889-A735-F32D70B97000}}");
         println!("  (or a number from the provided list)");
         println!("  port: the UDP port receiving broadcasts");
         println!("  addresses: the IPv4 addresses to retransmit the broadcast to");

@@ -7,7 +7,7 @@ fn main() {
 
     if args.len() < 4 {
         println!(
-            "Usage: {} <device> <port> <address1,address2...>",
+            "Usage: {} <device> <port> <address1,address2...> <my_vpn_ip>",
             Path::new(&args[0]).file_name().unwrap().to_str().unwrap()
         );
         println!("  device: a Windows device name, e.g:");
@@ -15,6 +15,7 @@ fn main() {
         println!("  (or a number from the provided list)");
         println!("  port: the UDP port receiving broadcasts");
         println!("  addresses: the IPv4 addresses to retransmit the broadcast to");
+        println!("  my_vpn_ip: IP address of the local machine in the same network as addresses above");
         println!();
         println!("Available devices:");
         Device::list()
@@ -31,6 +32,11 @@ fn main() {
         .split(",")
         .map(|x| format!("{}:{}", x, port))
         .collect();
+    let my_address: String = if args.len() > 4 {
+        format!("{0}:{1}", args[4].clone(), port)
+    } else {
+        "0.0.0.0:0".to_owned()
+    };
 
     let devices = Device::list().unwrap();
 
@@ -42,8 +48,9 @@ fn main() {
     }
     .expect("Device not found");
 
-    // bind the UDP socket to a free port
-    let sock = net::UdpSocket::bind("0.0.0.0:0").unwrap();
+    // bind the UDP socket either to the specific port in the given network (if provided),
+    // or to the ethemeral port.
+    let sock = net::UdpSocket::bind(&my_address).unwrap();
 
     let mut cap = Capture::from_device(device)
         .unwrap()
@@ -57,11 +64,11 @@ fn main() {
 
     loop {
         let packet = cap.next();
-        debug!("Received packet: {:?}", packet);
+        println!("Received packet: {:?}", packet);
         // actual data starts at byte 42
         let data = &packet.unwrap().data[42..];
         for address in addresses.iter() {
-            debug!("Resending data to {}: {:?}", address, data);
+            println!("Resending data to {}: {:?}", address, data);
             let _ = sock.send_to(&data, address).unwrap();
         }
     }

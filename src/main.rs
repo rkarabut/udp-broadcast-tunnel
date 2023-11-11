@@ -1,6 +1,7 @@
 use log::debug;
 use pcap::{Capture, Device};
 use std::{env, net, path::Path, process};
+use std::time::Instant;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -33,8 +34,10 @@ fn main() {
         .map(|x| format!("{}:{}", x, port))
         .collect();
     let my_address: String = if args.len() > 4 {
+        // specific port in the given network (if provided)
         format!("{0}:{1}", args[4].clone(), port)
     } else {
+        // ethemeral port
         "0.0.0.0:0".to_owned()
     };
 
@@ -47,10 +50,6 @@ fn main() {
         None => devices.into_iter().find(|d| d.name == devname),
     }
     .expect("Device not found");
-
-    // bind the UDP socket either to the specific port in the given network (if provided),
-    // or to the ethemeral port.
-    let sock = net::UdpSocket::bind(&my_address).unwrap();
 
     let mut cap = Capture::from_device(device)
         .unwrap()
@@ -67,9 +66,14 @@ fn main() {
         println!("Received packet: {:?}", packet);
         // actual data starts at byte 42
         let data = &packet.unwrap().data[42..];
+        // bind the UDP socket
+        let sock = net::UdpSocket::bind(&my_address).unwrap();
+        let probe1 = Instant::now();
         for address in addresses.iter() {
             println!("Resending data to {}: {:?}", address, data);
             let _ = sock.send_to(&data, address).unwrap();
         }
+        let probe2 = Instant::now();
+        println!("Sending time: {:?}", probe2.duration_since(probe1));
     }
 }

@@ -1,7 +1,6 @@
 use log::debug;
 use pcap::{Capture, Device};
 use std::{env, net, path::Path, process};
-use std::time::Instant;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -30,7 +29,7 @@ fn main() {
     let devname = args[1].clone();
     let port = args[2].parse::<usize>().expect("Invalid port");
     let addresses: Vec<String> = args[3]
-        .split(",")
+        .split(',')
         .map(|x| format!("{}:{}", x, port))
         .collect();
 
@@ -41,7 +40,7 @@ fn main() {
     };
         
     // bind the UDP socket
-    let sock = net::UdpSocket::bind(&bind_address).unwrap();
+    let sock = net::UdpSocket::bind(bind_address).unwrap();
 
     let devices = Device::list().unwrap();
 
@@ -70,7 +69,7 @@ fn main() {
         let data = &packet.unwrap().data[42..];
         for address in addresses.iter() {
             debug!("Resending data to {}: {:?}", address, data);
-            let _ = sock.send_to(&data, address).unwrap();
+            let _ = sock.send_to(data, address).unwrap();
         }
     }
 }

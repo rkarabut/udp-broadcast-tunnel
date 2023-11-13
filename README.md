@@ -1,6 +1,6 @@
 # udp-broadcast-tunnel
 
-This program retransmits UDP broadcast packets with a given destination port to a number of specified network addresses, which may be required for certain games (e.g. Torchlight 2) to establish LAN connections over a tun-based layer 3 VPN. Games requiring a specific source port to work (e.g. Warcraft 3, Grim Dawn), are currently supported with a hack which might result in dropping some packets (should not be an issue for most games only using broadcast sparingly). Retransmitting over multiple ports is not supported yet.
+This program retransmits UDP broadcast packets with a given destination port to a number of specified network addresses, which may be required for certain games (e.g. Torchlight 2) to establish LAN connections over a tun-based layer 3 VPN. While actual source spoofing is not implemented, games requiring a matching source port to work (e.g. Warcraft 3) are currently supported. Retransmitting over multiple ports is not supported yet.
 
 ## Building (Windows 10)
 
@@ -19,7 +19,7 @@ udp-broadcast-tunnel.exe 3 4549 10.8.0.2,10.8.0.3,10.8.0.4
 
 Specifically for Torchlight 2 this must be done on both client and server side, as the server seems to rely on a broadcast while negotiating the connection as well.
 
-In case source port spoofing is required, append the current client's IP address in the network:
+In case source port spoofing with source and destination ports matching is required (e.g. Warcraft 3), append the current client's IP address in the network:
 
 ```
 udp-broadcast-tunnel.exe 3 4549 10.8.0.2,10.8.0.3,10.8.0.4 10.8.0.7
@@ -29,8 +29,8 @@ Use `set RUST_LOG=debug` to inspect the retransmitted packets. Check your firewa
 
 ## Verified games
 
-Ports used by game lobbies, in alphabetical order:
+Ports used by the games, listed in alphabetical order:
 
-- `42801` Titan Quest - Anniversary Edition
-- `4549` Torchlight 2
-- `6112` Warcraft 3 (Frozen Throne)
+- Titan Quest - Anniversary Edition `42801`
+- Torchlight 2 `4549`
+- Warcraft 3 (also Frozen Throne) `6112`

@@ -19,15 +19,15 @@ udp-broadcast-tunnel.exe 3 4549 10.8.0.2,10.8.0.3,10.8.0.4
 
 Specifically for Torchlight 2 this must be done on both client and server side, as the server seems to rely on a broadcast while negotiating the connection as well.
 
-In case source port spoofing with source and destination ports matching is required (e.g. Warcraft 3), append the current client's IP address in the network:
+In case the source port must be set and is also matching the destination (e.g. Warcraft 3), append the current client's IP address:
 
 ```
 udp-broadcast-tunnel.exe 3 4549 10.8.0.2,10.8.0.3,10.8.0.4 10.8.0.7
 ```
 
-Use `set RUST_LOG=debug` to inspect the retransmitted packets. Check your firewall rules if you don't see any.
+Use `set RUST_LOG=debug` to inspect the retransmitted packets.
 
-## Verified games
+## Games confirmed working
 
 Ports used by the games, listed in alphabetical order:
 

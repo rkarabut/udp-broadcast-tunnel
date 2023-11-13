@@ -1,6 +1,6 @@
 [package]
 name = "udp-broadcast-tunnel"
-version = "0.2.0"
+version = "0.1.1"
 edition = "2018"
 authors = [ "Ratmir Karabut <rkarabut@gmail.com>" ]
 license = "MIT"

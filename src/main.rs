@@ -7,7 +7,7 @@ fn main() {
 
     if args.len() < 4 {
         println!(
-            "Usage: {} <device> <port> <address1,address2...>",
+            "Usage: {} <device> <port> <address1,address2...> [client_ip]",
             Path::new(&args[0]).file_name().unwrap().to_str().unwrap()
         );
         println!("  device: a Windows device name, e.g:");
@@ -15,6 +15,7 @@ fn main() {
         println!("  (or a number from the provided list)");
         println!("  port: the UDP port receiving broadcasts");
         println!("  addresses: the IPv4 addresses to retransmit the broadcast to");
+        println!("  client_ip: the IPv4 address of the current client (Warcraft 3 hack)");
         println!();
         println!("Available devices:");
         Device::list()
@@ -28,9 +29,16 @@ fn main() {
     let devname = args[1].clone();
     let port = args[2].parse::<usize>().expect("Invalid port");
     let addresses: Vec<String> = args[3]
-        .split(",")
+        .split(',')
         .map(|x| format!("{}:{}", x, port))
         .collect();
+
+    // in case the current client address is specified, use it for the Warcraft 3 hack
+    let warcraft_bind_address: Option<String> = if args.len() > 4 {
+        Some(format!("{0}:{1}", args[4].clone(), port))
+    } else {
+        None
+    };   
 
     let devices = Device::list().unwrap();
 
@@ -42,14 +50,15 @@ fn main() {
     }
     .expect("Device not found");
 
-    // bind the UDP socket to a free port
-    let sock = net::UdpSocket::bind("0.0.0.0:0").unwrap();
-
     let mut cap = Capture::from_device(device)
         .unwrap()
         .immediate_mode(true)
         .open()
         .unwrap();
+    
+    // bind to an ephemeral UDP port
+    let bind_address: String = "0.0.0.0:0".to_owned();
+    let main_sock = net::UdpSocket::bind(bind_address).unwrap();
 
     // catch broadcast packets
     cap.filter(&format!("host 255.255.255.255 and udp port {}", port))
@@ -60,9 +69,20 @@ fn main() {
         debug!("Received packet: {:?}", packet);
         // actual data starts at byte 42
         let data = &packet.unwrap().data[42..];
+        
         for address in addresses.iter() {
             debug!("Resending data to {}: {:?}", address, data);
-            let _ = sock.send_to(&data, address).unwrap();
+            match warcraft_bind_address {
+                Some(ref bind_address) => {
+                    // bind the temporary UDP socket (Warcraft 3 hack)
+                    let tmp_sock = net::UdpSocket::bind(bind_address).unwrap();
+                    let _ = tmp_sock.send_to(data, address).unwrap();
+                }
+                None => {
+                    // use the ephemeral port
+                    let _ = main_sock.send_to(data, address).unwrap();
+                }
+            }
         }
     }
 }
